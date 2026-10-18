@@ -1,0 +1,34 @@
+@host = http://localhost:5116
+@polygon = ../examples/polygon.geojson
+@mixed = ../examples/mixed.geojson
+@roads = ../examples/roads.geojson
+
+GET {{host}}/health
+
+###
+
+POST {{host}}/api/v1/geoprocessing/buffer
+Content-Type: multipart/form-data; boundary=Boundary
+
+--Boundary
+Content-Disposition: form-data; name="distance"
+
+0.25
+--Boundary
+Content-Disposition: form-data; name="file"; filename="mixed.geojson"
+Content-Type: application/geo+json
+
+< {{mixed}}
+--Boundary--
+
+###
+
+POST {{host}}/api/v1/geoprocessing/graph
+Content-Type: multipart/form-data; boundary=Boundary
+
+--Boundary
+Content-Disposition: form-data; name="file"; filename="roads.geojson"
+Content-Type: application/geo+json
+
+< {{roads}}
+--Boundary--

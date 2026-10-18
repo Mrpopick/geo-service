@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "point-a" },
+      "geometry": { "type": "Point", "coordinates": [0, 0] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "line-a" },
+      "geometry": { "type": "LineString", "coordinates": [[3, 0], [6, 0], [6, 2]] }
+    }
+  ]
+}

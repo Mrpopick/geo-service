@@ -1,0 +1,48 @@
+name: geo-routing-platform
+
+services:
+  geo-processing-service:
+    image: geo-processing-service:local
+    build:
+      context: .
+      dockerfile: GeoProcessingService.Core.Application/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__GeoProcessing: Data Source=/app/data/geoprocessing.db
+      Services__RoutingService__BaseUrl: http://routing-service:8000
+    ports:
+      - "${GEO_PROCESSING_PORT:-8080}:8080"
+    volumes:
+      - geo-processing-data:/app/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+  routing-service:
+    image: routing-service:local
+    build:
+      context: ./RoutingService
+      dockerfile: Dockerfile
+    environment:
+      GEOPROCESSING_URL: http://geo-processing-service:8080
+      ROUTING_DB_PATH: /app/app/data/routing.db
+    ports:
+      - "${ROUTING_PORT:-8001}:8000"
+    volumes:
+      - type: bind
+        source: ./RoutingService/app/data
+        target: /app/app/data
+    depends_on:
+      geo-processing-service:
+        condition: service_started
+    networks:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  geo-processing-data:
+
+networks:
+  backend:
+    driver: bridge

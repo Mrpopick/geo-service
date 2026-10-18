@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/data/*.db
+**/data/*.db-shm
+**/data/*.db-wal
+.vs/
+*.user
+.env
+RoutingService/.venv/
+RoutingService/.idea/
+RoutingService/**/__pycache__/
+RoutingService/**/*.py[cod]
+RoutingService/app/data/route_history.jsonl
