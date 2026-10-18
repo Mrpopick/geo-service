@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  table-export:
+    build: .
+    container_name: routes_export
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./exports:/app/exports    # файлы сохраняются на хосте
+    environment:
+      - EXPORT_DIR=/app/exports
+    restart: unless-stopped
