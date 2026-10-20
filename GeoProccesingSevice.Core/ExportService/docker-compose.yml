@@ -1,0 +1,13 @@
+services:
+  spatial-export:
+    build: .
+    container_name: spatial_export_service
+    ports:
+      - "8000:8000"
+    environment:
+      - EXPORT_DIR=/app/exports
+    volumes:
+      # Монтируем папку exports на хосте, чтобы файлы не терялись
+      # при пересборке контейнера
+      - ./exports:/app/exports
+    restart: unless-stopped
