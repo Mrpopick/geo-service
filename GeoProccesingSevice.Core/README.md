@@ -18,10 +18,16 @@ Application на Infrastructure использует только точка к�
 
 ## Запуск
 
-### Оба сервиса через Docker Compose
+### Все сервисы через Docker Compose
 
-В репозитории находятся два контейнера: `geo-processing-service` на .NET и
-`routing-service` на Python/FastAPI. Собрать и запустить их одной командой:
+Compose поднимает четыре контейнера в одной сети:
+
+- `geo-processing-service` — C# / NetTopologySuite;
+- `routing-service` — маршрутизация и единая точка входа для экспорта;
+- `spatial-export-service` — экспорт маршрутов в GPKG, SHP и KML;
+- `table-export-service` — экспорт истории маршрутов в CSV и XLSX.
+
+Собрать и запустить весь стек:
 
 ```bash
 docker compose up --build
@@ -31,17 +37,17 @@ docker compose up --build
 
 - Swagger геообработки: `http://localhost:8080/swagger`;
 - Swagger маршрутизации: `http://localhost:8001/docs`;
-- проверка геообработки: `http://localhost:8080/health`;
-- проверка маршрутизации: `http://localhost:8001/health`.
+- Swagger пространственного экспорта: `http://localhost:8002/docs`;
+- Swagger табличного экспорта: `http://localhost:8003/docs`.
 
 Docker не опрашивает эти адреса автоматически: постоянный health-check отключён.
 Ручки `/health` предназначены только для ручной проверки.
 
-Контейнеры находятся в общей сети `backend`. Python обращается к .NET по адресу
-из `GEOPROCESSING_URL=http://geo-processing-service:8080`. Для будущих вызовов
-из .NET в Python задан параметр конфигурации
-`Services:RoutingService:BaseUrl=http://routing-service:8000`. Внутри контейнеров
-нельзя использовать `localhost` для обращения к соседнему сервису.
+Контейнеры находятся в общей сети `backend`. Routing обращается к соседним
+контейнерам по адресам `geo-processing-service:8080`,
+`spatial-export-service:8000` и `table-export-service:8000`. Для будущих вызовов
+из .NET в Routing задан `Services:RoutingService:BaseUrl=http://routing-service:8000`.
+Внутри контейнеров нельзя использовать `localhost` для обращения к соседнему сервису.
 
 SQLite геосервиса хранится в Docker volume `geo-processing-data`, а данные графа
 и история маршрутов Python — в `RoutingService/app/data` на компьютере.
@@ -58,19 +64,40 @@ docker compose down
 
 ```powershell
 dotnet restore GeoProcessingService.Core.slnx --configfile NuGet.Config
-dotnet run --project GeoProcessingService.Core.Application
+dotnet run --project GeoProccesingService/GeoProcessingService.Core.Application
 ```
 
 При первом запуске автоматически создаётся файл
-`GeoProcessingService.Core.Application/data/geoprocessing.db`. Проверка состояния:
+`GeoProccesingService/GeoProcessingService.Core.Application/data/geoprocessing.db`.
+Проверка состояния:
 
 ```text
 GET http://localhost:5116/health
 ```
 
 В Development OpenAPI доступен по адресу `/openapi/v1.json`. Готовые примеры
-запросов находятся в `GeoProcessingService.Core.Application/GeoProcessingService.Core.Application.http`,
+запросов находятся в `GeoProccesingService/GeoProcessingService.Core.Application/GeoProcessingService.Core.Application.http`,
 тестовые данные — в каталоге `examples`.
+
+## Экспорт маршрутов через Routing Service
+
+Сначала постройте хотя бы один маршрут через
+`POST /api/v1/routes/shortest-time`. Routing сохраняет историю и сам передаёт её
+в нужный экспортный сервис — клиенту не надо обращаться к ним напрямую.
+
+| Метод | Путь | Результат |
+|---|---|---|
+| POST | `/api/v1/routes/export/table/csv?filename=routes` | готовый CSV-файл |
+| POST | `/api/v1/routes/export/table/xlsx?filename=routes` | готовый XLSX-файл |
+| POST | `/api/v1/routes/export/spatial/gpkg` | задача экспорта GeoPackage |
+| POST | `/api/v1/routes/export/spatial/shp` | задача экспорта Shapefile ZIP |
+| POST | `/api/v1/routes/export/spatial/kml` | задача экспорта KML |
+| GET | `/api/v1/routes/export/spatial/{task_id}/status` | состояние задачи |
+| GET | `/api/v1/routes/export/spatial/{task_id}/download` | готовый пространственный файл |
+
+Для пространственного экспорта первая ручка возвращает HTTP 202, `task_id`,
+`status_url` и `download_url`. Пока статус не станет `completed`, скачивание
+вернёт HTTP 409. Все перечисленные ручки видны в Swagger Routing Service.
 
 ## API
 

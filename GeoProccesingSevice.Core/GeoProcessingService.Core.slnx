@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="GeoProcessingService.Core.Application/GeoProcessingService.Core.Application.csproj" />
-  <Project Path="GeoProcessingService.Core.Domain/GeoProcessingService.Core.Domain.csproj" />
-  <Project Path="GeoProcessingService.Core.Infrastructure/GeoProcessingService.Core.Infrastructure.csproj" />
+  <Project Path="GeoProccesingService/GeoProcessingService.Core.Application/GeoProcessingService.Core.Application.csproj" />
+  <Project Path="GeoProccesingService/GeoProcessingService.Core.Domain/GeoProcessingService.Core.Domain.csproj" />
+  <Project Path="GeoProccesingService/GeoProcessingService.Core.Infrastructure/GeoProcessingService.Core.Infrastructure.csproj" />
 </Solution>

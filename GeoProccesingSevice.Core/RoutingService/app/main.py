@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import ValidationError
 
+from app.api.v1.exports import router as exports_router
 from app.core.config import ROUTING_DB_PATH
 from app.models.schemas import RouteRequest, RouteResponse
 from app.services.geoprocessing_client import (
@@ -27,6 +28,7 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+app.include_router(exports_router)
 
 
 @app.get("/")
